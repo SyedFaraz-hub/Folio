@@ -1,0 +1,9 @@
+Weekly sync — notes
+Attendees: Maya, Daniel, Priya
+
+Sharing works end to end; next we look at conflict warnings.
+Import supports .txt, .md and .docx up to 2 MB.
+
+Action items:
+Daniel to review the editor toolbar.
+Priya to update the hiring rubric.

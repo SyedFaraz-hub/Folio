@@ -1,6 +1,6 @@
 # Submission: Folio
 
-**Live product:** `<LIVE_URL>`
+**Live product:** https://folio-collaborative-document-editor.vercel.app
 **Walkthrough video:** see `VIDEO_URL.txt`
 
 **Test accounts.** No password is needed; pick one on the sign-in screen and use **Switch** to change user:
@@ -21,6 +21,7 @@
 | AI workflow note | `docs/AI_WORKFLOW.md` |
 | Automated tests (39) | `src/lib/*.test.ts`, fixtures in `src/test/` |
 | Screenshots | `docs/screenshots/` |
+| Sample files for testing import | `docs/sample-imports/` (.docx, .md, .txt + a PDF that shows the unsupported-file message) |
 | Walkthrough video link | `VIDEO_URL.txt` |
 | This file | `SUBMISSION.md` |
 

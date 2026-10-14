@@ -2,7 +2,7 @@
 
 A lightweight collaborative document editor: rich-text editing, file import, and owner-controlled sharing. Built as a 4–6 hour product-engineering exercise.
 
-**Live demo:** `<LIVE_URL>` · **Walkthrough video:** see [`VIDEO_URL.txt`](VIDEO_URL.txt)
+**Live demo:** https://folio-collaborative-document-editor.vercel.app · **Walkthrough video:** see [`VIDEO_URL.txt`](VIDEO_URL.txt)
 
 ![Dashboard](docs/screenshots/02-dashboard.png)
 
@@ -31,6 +31,7 @@ Sign-in is mocked. Pick an account on the sign-in screen; no password is needed.
   - **into the current draft:** appended at the end
 
   Other types (e.g. PDF) are rejected with a clear message. Supported types are stated in the dialog.
+  Ready-made files to try are in [`docs/sample-imports/`](docs/sample-imports): a `.docx`, `.md` and `.txt` that use every supported format, plus a PDF that shows the unsupported-file message.
 - **Sharing:**
   - Each document has one owner.
   - The owner invites existing users by email as **Can edit** or **Can view**, and can change roles or remove access.

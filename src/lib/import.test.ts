@@ -44,20 +44,35 @@ describe("parseImport()", () => {
     expect(marksIn(content)).toEqual(expect.arrayContaining(["bold", "italic"]));
   });
 
-  it("drops raw HTML embedded in Markdown", async () => {
-    const { content } = await parseImport("x.md", enc("Hello\n\n<script>alert(1)</script>\n\nBye"));
-    expect(JSON.stringify(content)).not.toContain("alert");
+  it("drops raw HTML embedded in Markdown, block and inline, keeping ordinary inline text", async () => {
+    const md = [
+      "Hello",
+      "",
+      "<script>alert(1)</script>",
+      "",
+      'Inline <script>alert("x")</script> end, <style>p{}</style>and <b>kept</b>.',
+      "",
+      "- item <script>steal()</script> ok",
+      "",
+      "`<script>shown as code</script>`",
+    ].join("\n");
+    const json = JSON.stringify((await parseImport("x.md", enc(md))).content);
+    expect(json).not.toContain("alert");
+    expect(json).not.toContain("steal");
+    expect(json).not.toContain("p{}");
+    expect(json).toContain("kept");
+    expect(json).toContain("shown as code");
   });
 
-  it("converts a real .docx, keeping headings and bold/italic", async () => {
+  it("converts a real .docx, keeping headings, bold/italic/underline and both list types", async () => {
     const bytes = readFileSync(join(__dirname, "../test/fixtures/sample.docx"));
     const { title, content } = await parseImport(
       "Hiring rubric v3.docx",
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
     );
     expect(title).toBe("Hiring rubric v3");
-    expect(types(content)).toEqual(["heading", "paragraph"]);
-    expect(marksIn(content)).toEqual(expect.arrayContaining(["bold", "italic"]));
+    expect(types(content)).toEqual(["heading", "paragraph", "bulletList", "orderedList"]);
+    expect(marksIn(content)).toEqual(expect.arrayContaining(["bold", "italic", "underline"]));
   });
 
   it.each([

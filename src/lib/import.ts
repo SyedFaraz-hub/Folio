@@ -1,7 +1,7 @@
 import type { JSONContent } from "@tiptap/core";
 import { generateJSON } from "@tiptap/html/server";
 import mammoth from "mammoth";
-import { Marked } from "marked";
+import { Marked, type Token, type Tokens } from "marked";
 import "server-only";
 
 import { documentExtensions } from "@/features/editor/lib/extensions";
@@ -17,6 +17,33 @@ export interface ParsedImport {
 // Raw HTML inside Markdown is dropped rather than trusted.
 const markdown = new Marked({ gfm: true, breaks: false, renderer: { html: () => "" } });
 
+/** Inline tags are dropped but their text kept (`<b>x</b>` → "x"); script/style text goes too. */
+function stripScriptText(tokens: Token[]) {
+  let inside = false;
+  for (const token of tokens) {
+    if (token.type === "html") {
+      // A lone opening tag starts a script/style run; block-level html tokens hold the whole element.
+      const closes = /<\/(script|style)\s*>/i.test(token.raw);
+      if (/^<(script|style)\b/i.test(token.raw) && !closes) inside = true;
+      else if (closes) inside = false;
+      continue;
+    }
+    if (inside) {
+      Object.assign(token, { text: "", raw: "", tokens: [] });
+      continue;
+    }
+    if ("tokens" in token && token.tokens) stripScriptText(token.tokens);
+    if (token.type === "list")
+      token.items.forEach((item: Tokens.ListItem) => stripScriptText(item.tokens));
+  }
+}
+
+function markdownToHtml(source: string): string {
+  const tokens = markdown.lexer(source);
+  stripScriptText(tokens);
+  return markdown.parser(tokens);
+}
+
 const EMPTY: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
 
 /**
@@ -30,7 +57,7 @@ export async function parseImport(filename: string, bytes: ArrayBuffer): Promise
   const ext = extensionOf(filename);
   let content: JSONContent;
   if (ext === ".docx") content = await fromDocx(bytes);
-  else if (ext === ".md") content = fromHtml(await markdown.parse(decodeText(bytes)));
+  else if (ext === ".md") content = fromHtml(markdownToHtml(decodeText(bytes)));
   else content = fromPlainText(decodeText(bytes));
 
   return promoteTitle(content, titleFromFilename(filename));
@@ -73,7 +100,8 @@ async function fromDocx(bytes: ArrayBuffer): Promise<JSONContent> {
     throw new ApiError(400, "unreadable_file", "This .docx file looks damaged.", "file");
   }
   try {
-    const { value } = await mammoth.convertToHtml({ buffer });
+    // mammoth drops underline unless mapped explicitly.
+    const { value } = await mammoth.convertToHtml({ buffer }, { styleMap: ["u => u"] });
     return fromHtml(value);
   } catch {
     throw new ApiError(400, "unreadable_file", "We couldn’t read this .docx file.", "file");
